@@ -223,6 +223,7 @@ module axi4_generic_byte_en_sram_bridge #(
 				2: begin
 					// TODO:
 //					read_data <= read_data_r;
+					read_data_r <= read_data;
 					read_state <= 3;
 				end
     			

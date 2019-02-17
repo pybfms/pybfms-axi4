@@ -20,28 +20,6 @@ module axi4_master_bfm #(
 		);
 `define BFM_NONBLOCK
 	
-	bit[AXI4_DATA_WIDTH-1:0]			wdata_buf[AXI4_MAX_BURST_LENGTH];
-	reg									aw_req = 0;
-	reg[(AXI4_ADDRESS_WIDTH-1):0]		AWADDR_r;
-	reg[(AXI4_ADDRESS_WIDTH-1):0]		AWADDR_rs;
-	reg[(AXI4_ID_WIDTH-1):0]			AWID_r;
-	reg[(AXI4_ID_WIDTH-1):0]			AWID_rs;
-	reg[7:0]							AWLEN_r;
-	reg[7:0]							AWLEN_rs;
-	reg[2:0]							AWSIZE_r;
-	reg[2:0]							AWSIZE_rs;
-	reg[1:0]							AWBURST_r;
-	reg[1:0]							AWBURST_rs;
-	reg[3:0]							AWCACHE_r;
-	reg[3:0]							AWCACHE_rs;
-	reg[2:0]							AWPROT_r;
-	reg[2:0]							AWPROT_rs;
-	reg[3:0]							AWQOS_r;
-	reg[3:0]							AWQOS_rs;
-	reg[3:0]							AWREGION_r;
-	reg[3:0]							AWREGION_rs;
-	reg									AWVALID_r;
-
 	axi4_master_bfm_core u_core (
 		.clock  (clock ), 
 		.reset  (reset ));
@@ -61,6 +39,17 @@ module axi4_master_bfm #(
 	assign AWVALID	= u_core.AWVALID;
 	assign u_core.AWREADY = AWREADY;
 	
+	assign WDATA = u_core.WDATA;
+	assign WSTRB = u_core.WSTRB;
+	assign WLAST = u_core.WLAST;
+	assign WVALID = u_core.WVALID;
+	assign u_core.WREADY = WREADY;
+	
+	assign u_core.BID = BID;
+	assign u_core.BRESP = BRESP;
+	assign u_core.BVALID = BVALID;
+	assign BREADY = u_core.BREADY;
+	
 	assign ARVALID 	= u_core.ARVALID;
 	assign u_core.ARREADY = ARREADY;
 	assign ARADDR 	= u_core.ARADDR;
@@ -79,43 +68,9 @@ module axi4_master_bfm #(
 	assign u_core.RVALID = RVALID;
 	assign RREADY = u_core.RREADY;
 	
-//	task axi4_master_bfm_get_parameters(
-//			output int unsigned ADDRESS_WIDTH,
-//			output int unsigned DATA_WIDTH,
-//			output int unsigned ID_WIDTH);
-//			ADDRESS_WIDTH = AXI4_ADDRESS_WIDTH;
-//			DATA_WIDTH = AXI4_DATA_WIDTH;
-//			ID_WIDTH = AXI4_ID_WIDTH;
-//	endtask
-//	export "DPI-C" task axi4_master_bfm_get_parameters;
-
-
 endmodule
 
 interface axi4_master_bfm_core(input clock, input reset);
-//	bit[AXI4_DATA_WIDTH-1:0]			wdata_buf[AXI4_MAX_BURST_LENGTH];
-//	reg									aw_req = 0;
-//	reg[(AXI4_ADDRESS_WIDTH-1):0]		AWADDR_r;
-//	reg[(AXI4_ADDRESS_WIDTH-1):0]		AWADDR_rs;
-//	reg[(AXI4_ID_WIDTH-1):0]			AWID_r;
-//	reg[(AXI4_ID_WIDTH-1):0]			AWID_rs;
-//	reg[7:0]							AWLEN_r;
-//	reg[7:0]							AWLEN_rs;
-//	reg[2:0]							AWSIZE_r;
-//	reg[2:0]							AWSIZE_rs;
-//	reg[1:0]							AWBURST_r;
-//	reg[1:0]							AWBURST_rs;
-//	reg[3:0]							AWCACHE_r;
-//	reg[3:0]							AWCACHE_rs;
-//	reg[2:0]							AWPROT_r;
-//	reg[2:0]							AWPROT_rs;
-//	reg[3:0]							AWQOS_r;
-//	reg[3:0]							AWQOS_rs;
-//	reg[3:0]							AWREGION_r;
-//	reg[3:0]							AWREGION_rs;
-//	reg									AWVALID_r;
-
-//	bit[AXI4_DATA_WIDTH-1:0]			rdata_buf[AXI4_MAX_BURST_LENGTH];
 	wire[31:0]							AXI4_ID_WIDTH;
 	reg[63:0]							AWADDR;
 	reg[63:0]							AWADDR_r;
@@ -140,6 +95,21 @@ interface axi4_master_bfm_core(input clock, input reset);
 	reg									AWVALID;
 	reg									AWVALID_r = 0;
 	wire								AWREADY;
+	
+	reg[63:0]							WDATA;
+	reg[63:0]							WDATA_r;
+	reg[7:0]							WSTRB;
+	reg[7:0]							WSTRB_r;
+	reg									WLAST;
+	reg									WLAST_r;
+	reg									WVALID;
+	reg									WVALID_r;
+	wire								WREADY;
+	
+	wire[31:0]							BID;
+	wire[1:0]							BRESP;
+	wire								BVALID;
+	reg									BREADY = 1;
 	
 	reg[63:0]							ARADDR;
 	reg[63:0]							ARADDR_r;
@@ -241,15 +211,60 @@ interface axi4_master_bfm_core(input clock, input reset);
 	export "DPI-C" task axi4_master_bfm_awreq;
 `endif
 	
+	task axi4_master_bfm_wdata(
+		longint unsigned		wdata,
+		int unsigned			wstrb,
+		byte unsigned			wlast);
+		WDATA_r = wdata;
+		WSTRB_r = wstrb;
+		WLAST_r = wlast;
+		WVALID_r = 1;
+	endtask
+`ifndef HAVE_HDL_VIRTUAL_INTERFACE
+	export "DPI-C" task axi4_master_bfm_wdata;
+`endif
+	
+	always @(posedge clock) begin
+		WDATA <= WDATA_r;
+		WSTRB <= WSTRB_r;
+		WLAST <= WLAST_r;
+		WVALID <= WVALID_r;
+		
+		if (WVALID && WREADY) begin
+			WVALID_r = 0;
+`ifdef HAVE_HDL_VIRTUAL_INTERFACE
+`else
+			axi4_master_bfm_wdata_ack(m_id);
+`endif
+
+		end
+	end
+	
 `ifndef HAVE_HDL_VIRTUAL_INTERFACE
 	import "DPI-C" context task axi4_master_bfm_arreq_ack(int unsigned id);
 	import "DPI-C" context task axi4_master_bfm_awreq_ack(int unsigned id);
+	import "DPI-C" context task axi4_master_bfm_wdata_ack(int unsigned id);
+`endif
+	
+	always @(posedge clock) begin
+		if (BVALID && BREADY) begin
+`ifdef HAVE_HDL_VIRTUAL_INTERFACE
+`else
+			axi4_master_bfm_bresp(m_id, BID, BRESP);
+`endif
+		end
+	end
+	
+`ifndef HAVE_HDL_VIRTUAL_INTERFACE
+	import "DPI-C" context task axi4_master_bfm_bresp(
+			int unsigned id,
+			int unsigned bid,
+			byte unsigned bresp);
 `endif
 	
 	// TODO: detect reset
 	reg in_reset = 0;
 	always @(posedge clock) begin
-		$display("clock: reset=%0d", reset);
 		if (reset) begin
 			in_reset <= 1;
 		end else begin
@@ -283,6 +298,7 @@ interface axi4_master_bfm_core(input clock, input reset);
 			axi4_master_bfm_awreq_ack(m_id);
 `endif
 			AWVALID_r = 0;
+			AWVALID <= 0;
 		end
 	end
 		
@@ -304,6 +320,7 @@ interface axi4_master_bfm_core(input clock, input reset);
 			axi4_master_bfm_arreq_ack(m_id);
 `endif
 			ARVALID_r = 0;
+			ARVALID <= 0;
 		end
 		
 	end
@@ -328,8 +345,6 @@ interface axi4_master_bfm_core(input clock, input reset);
 					RRESP,
 					RLAST);
 `endif
-	
-			$display("rresp");
 		end
 	end
 	

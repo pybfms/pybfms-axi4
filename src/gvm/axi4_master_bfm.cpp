@@ -34,6 +34,10 @@ void axi4_master_bfm_awreq(
 		uint8_t				awprot,
 		uint8_t				awregion);
 
+void axi4_master_bfm_wdata(
+		uint64_t			wdata,
+		uint32_t			wstrb,
+		uint8_t				wlast);
 
 // DPI-import functions
 uint32_t axi4_master_bfm_register(const char *path);
@@ -43,6 +47,10 @@ uint32_t axi4_master_bfm_reset(uint32_t id);
 uint32_t axi4_master_bfm_arreq_ack(uint32_t id);
 
 uint32_t axi4_master_bfm_awreq_ack(uint32_t id);
+
+uint32_t axi4_master_bfm_wdata_ack(uint32_t id);
+
+uint32_t axi4_master_bfm_bresp(uint32_t id, uint32_t bid, uint8_t resp);
 
 uint32_t axi4_master_bfm_rresp(
 		uint32_t			id,
@@ -61,7 +69,7 @@ axi4_master_bfm::axi4_master_bfm() :
 	m_is_reset = false;
 	m_recv_arreq = false;
 	m_recv_awreq = false;
-
+	m_recv_wdata = false;
 }
 
 axi4_master_bfm::~axi4_master_bfm() {
@@ -94,23 +102,25 @@ void axi4_master_bfm::init(const std::string &path, void *ctxt) {
 	m_id_pool_sz = num_ids;
 
 	m_rresp_notifiers = new rresp_data[num_ids];
-	m_bresp_notifiers = new notifier[num_ids];
+	m_bresp_notifiers = new bresp_data[num_ids];
 }
 
 uint32_t axi4_master_bfm::read32(uint64_t addr) {
+	uint64_t data;
+	bool last;
 	uint32_t arid = alloc_id();
 
 	m_rresp_notifiers[arid].set_valid();
 	arreq(addr, arid, 1, 1, 0, 0, 0, 0);
 
 	// Wait for a response
-	m_rresp_notifiers[arid].wait();
+	m_rresp_notifiers[arid].wait(data, last);
 
 	fprintf(stdout, "last=%d\n", m_rresp_notifiers[arid].last());
 
 	free_id(arid);
 
-	return 5;
+	return data;
 }
 
 void axi4_master_bfm::write32(
@@ -121,7 +131,18 @@ void axi4_master_bfm::write32(
 	m_bresp_notifiers[awid].set_valid();
 	awreq(addr, awid, 1, 1, 0, 0, 0, 0);
 
-	// TODO: send data
+	// Send data
+	GoogletestHdl::setContext(getContext());
+	axi4_master_bfm_wdata(data, 0xF, 1);
+
+	m_recv_wdata_mutex.lock();
+	while (!m_recv_wdata) {
+		m_recv_wdata_cond.wait(m_recv_wdata_mutex);
+	}
+	m_recv_wdata = false;
+	m_recv_wdata_mutex.unlock();
+
+	free_id(awid);
 
 	// TODO: wait for bresp
 
@@ -195,6 +216,23 @@ void axi4_master_bfm::awreq_ack() {
 	fprintf(stdout, "<-- awreq_ack\n");
 }
 
+void axi4_master_bfm::wdata_ack() {
+	m_recv_wdata_mutex.lock();
+	m_recv_wdata = true;
+	m_recv_wdata_cond.notify();
+	m_recv_wdata_mutex.unlock();
+}
+
+void axi4_master_bfm::bresp(uint32_t bid, uint8_t resp) {
+	fprintf(stdout, "bresp: bid=%d\n", bid);
+
+	if (bid < m_id_pool_sz) {
+		m_bresp_notifiers[bid].notify(resp);
+	} else {
+		fprintf(stdout, "INTERNAL ERROR: bid %d is outside legal limits\n", bid);
+	}
+}
+
 void axi4_master_bfm::rresp(
 		uint32_t				rid,
 		uint64_t				rdata,
@@ -203,8 +241,7 @@ void axi4_master_bfm::rresp(
 	fprintf(stdout, "rresp: rid=%d rlast=%d\n", rid, rlast);
 
 	if (rid < m_id_pool_sz) {
-		m_rresp_notifiers[rid].set_data(0, rdata);
-		m_rresp_notifiers[rid].notify(rlast);
+		m_rresp_notifiers[rid].notify(rdata, rlast);
 	} else {
 		fprintf(stdout, "INTERNAL ERROR: rid %0d is outside legal limits\n", rid);
 	}
@@ -265,6 +302,16 @@ uint32_t axi4_master_bfm_arreq_ack(uint32_t id) {
 
 uint32_t axi4_master_bfm_awreq_ack(uint32_t id) {
 	axi4_master_bfm_t::bfm(id)->awreq_ack();
+	return 0;
+}
+
+uint32_t axi4_master_bfm_wdata_ack(uint32_t id) {
+	axi4_master_bfm_t::bfm(id)->wdata_ack();
+	return 0;
+}
+
+uint32_t axi4_master_bfm_bresp(uint32_t id, uint32_t bid, uint8_t resp) {
+	axi4_master_bfm_t::bfm(id)->bresp(bid, resp);
 	return 0;
 }
 
