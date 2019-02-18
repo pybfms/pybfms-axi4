@@ -87,8 +87,11 @@ axi4_master_bfm::~axi4_master_bfm() {
 
 void axi4_master_bfm::init(const std::string &path, void *ctxt) {
 	uint32_t id_width;
+	fprintf(stdout, "--> calling init ctxt=%p\n", ctxt);
 	GvmBfm::init(path, ctxt);
+	fprintf(stdout, "<-- calling init\n");
 
+	fprintf(stdout, "context: %p\n", getContext());
 	GoogletestHdl::setContext(getContext());
 	axi4_master_bfm_get_parameters(&id_width);
 
@@ -326,6 +329,7 @@ uint32_t axi4_master_bfm_rresp(
 }
 
 uint32_t axi4_master_bfm_register(const char *path) {
+	fprintf(stdout, "-- axi4_master_bfm_register: %s\n", path);
 	return axi4_master_bfm_t::register_bfm(path);
 }
 

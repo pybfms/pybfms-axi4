@@ -72,38 +72,38 @@ endmodule
 
 interface axi4_master_bfm_core(input clock, input reset);
 	wire[31:0]							AXI4_ID_WIDTH;
-	reg[63:0]							AWADDR;
-	reg[63:0]							AWADDR_r;
-	reg[31:0]							AWID;
-	reg[31:0]							AWID_r;
-	reg[7:0]							AWLEN;
-	reg[7:0]							AWLEN_r;
-	reg[2:0]							AWSIZE;
-	reg[2:0]							AWSIZE_r;
-	reg[1:0]							AWBURST;
+	reg[63:0]							AWADDR = 0;
+	reg[63:0]							AWADDR_r = 0;
+	reg[31:0]							AWID = 0;
+	reg[31:0]							AWID_r = 0;
+	reg[7:0]							AWLEN = 0;
+	reg[7:0]							AWLEN_r = 0;
+	reg[2:0]							AWSIZE = 0;
+	reg[2:0]							AWSIZE_r = 0;
+	reg[1:0]							AWBURST = 0;
 	reg[1:0]							AWBURST_r;
-	reg									AWLOCK;
-	reg									AWLOCK_r;
-	reg[3:0]							AWCACHE;
-	reg[3:0]							AWCACHE_r;
-	reg[2:0]							AWPROT;
-	reg[2:0]							AWPROT_r;
-	reg[3:0]							AWQOS;
-	reg[3:0]							AWQOS_r;
-	reg[3:0]							AWREGION;
-	reg[3:0]							AWREGION_r;
-	reg									AWVALID;
+	reg									AWLOCK = 0;
+	reg									AWLOCK_r = 0;
+	reg[3:0]							AWCACHE = 0;
+	reg[3:0]							AWCACHE_r = 0;
+	reg[2:0]							AWPROT = 0;
+	reg[2:0]							AWPROT_r = 0;
+	reg[3:0]							AWQOS = 0;
+	reg[3:0]							AWQOS_r = 0;
+	reg[3:0]							AWREGION = 0;
+	reg[3:0]							AWREGION_r = 0;
+	reg									AWVALID = 0;
 	reg									AWVALID_r = 0;
 	wire								AWREADY;
 	
-	reg[63:0]							WDATA;
-	reg[63:0]							WDATA_r;
-	reg[7:0]							WSTRB;
-	reg[7:0]							WSTRB_r;
-	reg									WLAST;
-	reg									WLAST_r;
-	reg									WVALID;
-	reg									WVALID_r;
+	reg[63:0]							WDATA = 0;
+	reg[63:0]							WDATA_r = 0;
+	reg[7:0]							WSTRB = 0;
+	reg[7:0]							WSTRB_r = 0;
+	reg									WLAST = 0;
+	reg									WLAST_r = 0;
+	reg									WVALID = 0;
+	reg									WVALID_r = 0;
 	wire								WREADY;
 	
 	wire[31:0]							BID;
@@ -111,23 +111,23 @@ interface axi4_master_bfm_core(input clock, input reset);
 	wire								BVALID;
 	reg									BREADY = 1;
 	
-	reg[63:0]							ARADDR;
-	reg[63:0]							ARADDR_r;
-	reg[31:0]							ARID;
-	reg[31:0]							ARID_r;
-	reg[7:0]							ARLEN;
-	reg[7:0]							ARLEN_r;
-	reg[2:0]							ARSIZE;
-	reg[2:0]							ARSIZE_r;
-	reg[1:0]							ARBURST;
-	reg[1:0]							ARBURST_r;
-	reg[3:0]							ARCACHE;
-	reg[3:0]							ARCACHE_r;
-	reg[2:0]							ARPROT;
-	reg[2:0]							ARPROT_r;
-	reg[3:0]							ARREGION;
-	reg[3:0]							ARREGION_r;
-	reg									ARVALID;
+	reg[63:0]							ARADDR = 0;
+	reg[63:0]							ARADDR_r = 0;
+	reg[31:0]							ARID = 0;
+	reg[31:0]							ARID_r = 0;
+	reg[7:0]							ARLEN = 0;
+	reg[7:0]							ARLEN_r = 0;
+	reg[2:0]							ARSIZE = 0;
+	reg[2:0]							ARSIZE_r = 0;
+	reg[1:0]							ARBURST = 0;
+	reg[1:0]							ARBURST_r = 0;
+	reg[3:0]							ARCACHE = 0;
+	reg[3:0]							ARCACHE_r = 0;
+	reg[2:0]							ARPROT = 0;
+	reg[2:0]							ARPROT_r = 0;
+	reg[3:0]							ARREGION = 0;
+	reg[3:0]							ARREGION_r = 0;
+	reg									ARVALID = 0;
 	reg									ARVALID_r = 0;
 	wire								ARREADY;
 	
@@ -150,11 +150,11 @@ interface axi4_master_bfm_core(input clock, input reset);
 		
 		import "DPI-C" context function int unsigned axi4_master_bfm_register(string path);
 		
-		task axi4_master_bfm_get_parameters(
+		function void axi4_master_bfm_get_parameters(
 			output int unsigned				id_width);
 			id_width = AXI4_ID_WIDTH;
-		endtask
-		export "DPI-C" task axi4_master_bfm_get_parameters;
+		endfunction
+		export "DPI-C" function axi4_master_bfm_get_parameters;
 		
 		initial begin
 			m_id = axi4_master_bfm_register($sformatf("%m"));

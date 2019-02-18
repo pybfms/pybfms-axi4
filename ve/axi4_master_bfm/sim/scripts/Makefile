@@ -2,6 +2,9 @@
 #* Makefile for axi4_master_bfm
 #****************************************************************************
 SCRIPTS_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+AXI4_BFMS := $(abspath $(SCRIPTS_DIR)/../../../..)
+export AXI4_BFMS
+
 include $(PACKAGES_DIR)/packages.mk
 include $(PACKAGES_DIR)/simscripts/mkfiles/plusargs.mk
 
