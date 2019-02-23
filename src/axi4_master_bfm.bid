@@ -1,0 +1,39 @@
+#****************************************************************************
+#* axi4_master_bfm.bid
+#*
+#* Interface Definition for AXI4 Master BFM
+#****************************************************************************
+{
+  "tasks": [
+    { "name": "get_parameters", "type": "acc",
+      "parameters": [
+        { "name": "id_width", "type": "uint32_t", "dir": "output" }
+      ]
+    },
+    { "name": "reset", "type": "ack" },
+    { "name": "arreq", "type": "req",
+      "parameters": [
+        { "name": "addr", "type": "uint64_t" },
+        { "name": "arid", "type": "uint32_t" }
+      ]
+    },
+    { "name": "arreq_ack", "type": "ack" },
+    { "name": "awreq_ack", "type": "ack" },
+    { "name": "wdata_ack", "type": "ack" },
+    { "name": "bresp", "type": "ack",
+      "parameters": [
+        { "name": "bid", "type": "uint32_t" },
+        { "name": "bresp", "type": "uint8_t" }
+      ]
+    },
+    { "name": "rresp", "type": "ack",
+      "parameters": [
+        { "name": "rid", "type": "uint32_t" },
+        { "name": "rdata", "type": "uint64_t" },
+        { "name": "rresp", "type": "uint8_t" },
+        { "name": "rlast", "type": "uint8_t"}
+      ]
+    }
+  ]
+}
+
