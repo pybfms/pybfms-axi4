@@ -138,33 +138,12 @@ interface axi4_master_bfm_core(input clock, input reset);
 	wire								RVALID;
 	reg									RREADY = 1;
 	
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-		// TODO: API package
-`endif
+	function void axi4_master_bfm_get_parameters(
+		output int unsigned		id_width);
+		id_width = AXI4_ID_WIDTH;
+	endfunction
 	
 	
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-		// TODO: API handle
-`else
-		int unsigned				m_id;
-		
-		import "DPI-C" context function int unsigned axi4_master_bfm_register(string path);
-		
-		function void axi4_master_bfm_get_parameters(
-			output int unsigned				id_width);
-			id_width = AXI4_ID_WIDTH;
-		endfunction
-		export "DPI-C" function axi4_master_bfm_get_parameters;
-		
-		initial begin
-			m_id = axi4_master_bfm_register($sformatf("%m"));
-		end
-`endif
-	
-`ifndef HAVE_HDL_VIRTUAL_INTERFACE
-	import "DPI-C" context task axi4_master_bfm_reset(int unsigned id);
-`endif
-
 	task axi4_master_bfm_arreq(
 		longint unsigned		addr,
 		int unsigned			arid,
@@ -184,9 +163,6 @@ interface axi4_master_bfm_core(input clock, input reset);
 		ARREGION_r = arregion;
 		ARVALID_r = 1;
 	endtask
-`ifndef HAVE_HDL_VIRTUAL_INTERFACE
-	export "DPI-C" task axi4_master_bfm_arreq;
-`endif
 
 	task axi4_master_bfm_awreq(
 		longint unsigned		awddr,
@@ -197,6 +173,7 @@ interface axi4_master_bfm_core(input clock, input reset);
 		byte unsigned			awcache,
 		byte unsigned			awprot,
 		byte unsigned			awregion);
+		$display("awreq");
 		AWADDR_r = awddr;
 		AWID_r = awid;
 		AWLEN_r = awlen;
@@ -207,9 +184,6 @@ interface axi4_master_bfm_core(input clock, input reset);
 		AWREGION_r = awregion;
 		AWVALID_r = 1;
 	endtask
-`ifndef HAVE_HDL_VIRTUAL_INTERFACE
-	export "DPI-C" task axi4_master_bfm_awreq;
-`endif
 	
 	task axi4_master_bfm_wdata(
 		longint unsigned		wdata,
@@ -220,9 +194,6 @@ interface axi4_master_bfm_core(input clock, input reset);
 		WLAST_r = wlast;
 		WVALID_r = 1;
 	endtask
-`ifndef HAVE_HDL_VIRTUAL_INTERFACE
-	export "DPI-C" task axi4_master_bfm_wdata;
-`endif
 	
 	always @(posedge clock) begin
 		WDATA <= WDATA_r;
@@ -232,35 +203,15 @@ interface axi4_master_bfm_core(input clock, input reset);
 		
 		if (WVALID && WREADY) begin
 			WVALID_r = 0;
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-`else
-			axi4_master_bfm_wdata_ack(m_id);
-`endif
-
+			wdata_ack();
 		end
 	end
-	
-`ifndef HAVE_HDL_VIRTUAL_INTERFACE
-	import "DPI-C" context task axi4_master_bfm_arreq_ack(int unsigned id);
-	import "DPI-C" context task axi4_master_bfm_awreq_ack(int unsigned id);
-	import "DPI-C" context task axi4_master_bfm_wdata_ack(int unsigned id);
-`endif
 	
 	always @(posedge clock) begin
 		if (BVALID && BREADY) begin
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-`else
-			axi4_master_bfm_bresp(m_id, BID, BRESP);
-`endif
+			bresp(BID, BRESP);
 		end
 	end
-	
-`ifndef HAVE_HDL_VIRTUAL_INTERFACE
-	import "DPI-C" context task axi4_master_bfm_bresp(
-			int unsigned id,
-			int unsigned bid,
-			byte unsigned bresp);
-`endif
 	
 	// TODO: detect reset
 	reg in_reset = 0;
@@ -269,10 +220,7 @@ interface axi4_master_bfm_core(input clock, input reset);
 			in_reset <= 1;
 		end else begin
 			if (in_reset) begin
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-`else
-				axi4_master_bfm_reset(m_id);
-`endif
+				reset_ev();
 				in_reset <= 0;
 			end
 		end
@@ -292,11 +240,7 @@ interface axi4_master_bfm_core(input clock, input reset);
 		AWREGION <= AWREGION_r;
 		
 		if (AWVALID && AWREADY) begin
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-				// TODO:
-`else
-			axi4_master_bfm_awreq_ack(m_id);
-`endif
+			awreq_ack();
 			AWVALID_r = 0;
 			AWVALID <= 0;
 		end
@@ -315,39 +259,20 @@ interface axi4_master_bfm_core(input clock, input reset);
 		
 		
 		if (ARVALID && ARREADY) begin
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-`else
-			axi4_master_bfm_arreq_ack(m_id);
-`endif
+			arreq_ack();
 			ARVALID_r = 0;
 			ARVALID <= 0;
 		end
 		
 	end
 
-`ifndef HAVE_HDL_VIRTUAL_INTERFACE
-	import "DPI-C" task axi4_master_bfm_rresp(
-			int unsigned				id,
-			int unsigned				rid,
-			longint unsigned			rdata,
-			byte unsigned				rresp,
-			byte unsigned				rlast);
-`endif
-	
 	always @(posedge clock) begin
 		if (RREADY && RVALID) begin
-`ifdef HAVE_HDL_VIRTUAL_INTERFACE
-`else
-			axi4_master_bfm_rresp(
-					m_id,
-					RID,
-					RDATA,
-					RRESP,
-					RLAST);
-`endif
+			rresp(RID, RDATA, RRESP, RLAST);
 		end
 	end
-	
+
+`include "axi4_master_bfm_api.svh"
 endinterface
 
 

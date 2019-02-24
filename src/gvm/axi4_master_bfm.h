@@ -9,12 +9,9 @@
 #include "GvmBfmType.h"
 #include "GvmMutex.h"
 #include "GvmCond.h"
-#include "axi4_master_bfm_rsp_if.h"
+#include "axi4_master_bfm_base.h"
 
-
-
-class axi4_master_bfm :
-		public GvmBfm<axi4_master_bfm_rsp_if>,
+class axi4_master_bfm : public axi4_master_bfm_base,
 		public virtual axi4_master_bfm_rsp_if {
 public:
 	axi4_master_bfm();
@@ -69,7 +66,7 @@ public:
 			uint8_t				rlast
 			);
 
-	virtual void reset();
+	virtual void reset_ev();
 
 	void wait_reset();
 

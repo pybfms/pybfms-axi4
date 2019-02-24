@@ -5,16 +5,41 @@
 #****************************************************************************
 {
   "tasks": [
-    { "name": "get_parameters", "type": "acc",
-      "parameters": [
-        { "name": "id_width", "type": "uint32_t", "dir": "output" }
-      ]
-    },
-    { "name": "reset", "type": "ack" },
+   { "name": "get_parameters", "type": "acc",
+     "parameters": [
+       { "name": "id_width", "type": "uint32_t", "dir": "output" }
+     ]
+   },
+    { "name": "reset_ev", "type": "ack" },
     { "name": "arreq", "type": "req",
       "parameters": [
-        { "name": "addr", "type": "uint64_t" },
-        { "name": "arid", "type": "uint32_t" }
+        { "name": "araddr", "type": "uint64_t" },
+        { "name": "arid", "type": "uint32_t" },
+        { "name": "arlen", "type": "uint8_t" },
+        { "name": "arsize", "type": "uint8_t" },
+        { "name": "arburst", "type": "uint8_t" },
+        { "name": "arcache", "type": "uint8_t" },
+        { "name": "arprot", "type": "uint8_t" },
+        { "name": "arregion", "type": "uint8_t" }
+      ]
+    },
+    { "name": "awreq", "type": "req",
+      "parameters": [
+        { "name": "awddr", "type": "uint64_t" },
+        { "name": "awid", "type": "uint32_t" },
+        { "name": "awlen", "type": "uint8_t" },
+        { "name": "awsize", "type": "uint8_t" },
+        { "name": "awburst", "type": "uint8_t" },
+        { "name": "awcache", "type": "uint8_t" },
+        { "name": "awprot", "type": "uint8_t" },
+        { "name": "awregion", "type": "uint8_t" }
+      ]
+    },
+    { "name": "wdata", "type": "req",
+      "parameters": [
+        { "name": "data", "type": "uint64_t" },
+        { "name": "strb", "type": "uint32_t" },
+        { "name": "last", "type": "uint8_t" }
       ]
     },
     { "name": "arreq_ack", "type": "ack" },

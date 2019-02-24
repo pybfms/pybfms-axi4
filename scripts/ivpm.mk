@@ -23,15 +23,23 @@ MK_INCLUDES += $(wildcard $(ROOT_DIR)/mkfiles/*.mk)
 
 include $(MK_INCLUDES)
 
+AXI4_MASTER_BFM_GEN_FILES = $(call BFM_TOOLS_GEN_FILES,$(ROOT_DIR)/src-gen,axi4_master_bfm)
+
 RULES := 1
 
 ifeq (true,$(PHASE2))
-build : 
+build : \
+	$(ROOT_DIR)/src-gen/axi4_master_bfm.d
 else
 build : $($(PROJECT)_deps)
 	$(Q)$(MAKE) -f $(SCRIPTS_DIR)/ivpm.mk PHASE2=true VERBOSE=$(VERBOSE) build
 endif
 
+$(ROOT_DIR)/src-gen/axi4_master_bfm.d : $(ROOT_DIR)/src/axi4_master_bfm.bid
+	$(Q)$(BFM_TOOLS)/bin/bfm-tools gen-ifc -o $(ROOT_DIR)/src-gen -force \
+		$(ROOT_DIR)/src/axi4_master_bfm.bid
+	$(Q)touch $@
+		
 release : build
 	$(Q)rm -rf $(ROOT_DIR)/build
 	$(Q)mkdir -p $(ROOT_DIR)/build/$(PROJECT)
